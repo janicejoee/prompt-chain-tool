@@ -1,0 +1,116 @@
+import Link from "next/link";
+import { getCachedClient } from "@/lib/supabase/server";
+import { createFlavor, deleteFlavor, updateFlavor } from "./actions";
+import type { HumorFlavor } from "@/lib/types/humor";
+
+export const dynamic = "force-dynamic";
+
+export default async function FlavorsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error: actionError } = await searchParams;
+  const supabase = await getCachedClient();
+  const { data: flavors, error } = await supabase
+    .from("humor_flavors")
+    .select("id, slug, description, created_datetime_utc")
+    .order("created_datetime_utc", { ascending: false });
+
+  if (error) {
+    return <p className="text-red-600">Failed to load flavors: {error.message}</p>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold">Humor Flavors</h2>
+        <p className="text-sm text-zinc-600">
+          Create, edit, and delete humor flavors.
+        </p>
+      </div>
+      {actionError ? (
+        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {actionError}
+        </p>
+      ) : null}
+
+      <form
+        action={createFlavor}
+        className="grid gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4 md:grid-cols-3"
+      >
+        <input
+          name="slug"
+          required
+          placeholder="Slug (e.g. dry-observational)"
+          className="rounded border border-zinc-300 bg-white px-3 py-2"
+        />
+        <input
+          name="description"
+          placeholder="Description"
+          className="rounded border border-zinc-300 bg-white px-3 py-2"
+        />
+        <button className="rounded bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700">
+          Create Flavor
+        </button>
+      </form>
+
+      <div className="space-y-3">
+        {(flavors as HumorFlavor[] | null)?.map((flavor) => (
+          <div key={flavor.id} className="rounded-lg border border-zinc-200 p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <p className="font-medium text-zinc-900">
+                  #{flavor.id} {flavor.slug}
+                </p>
+                <p className="text-sm text-zinc-600">
+                  {flavor.description || "No description"}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Link
+                  href={`/admin/flavors/${flavor.id}`}
+                  className="rounded border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100"
+                >
+                  Manage Steps
+                </Link>
+                <Link
+                  href={`/admin/flavors/${flavor.id}/captions`}
+                  className="rounded border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100"
+                >
+                  Captions
+                </Link>
+                <Link
+                  href={`/admin/flavors/${flavor.id}/test`}
+                  className="rounded border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100"
+                >
+                  Test
+                </Link>
+              </div>
+            </div>
+            <form action={updateFlavor} className="grid gap-2 md:grid-cols-4">
+              <input type="hidden" name="id" value={flavor.id} />
+              <input
+                name="slug"
+                defaultValue={flavor.slug}
+                className="rounded border border-zinc-300 bg-white px-3 py-2"
+              />
+              <input
+                name="description"
+                defaultValue={flavor.description ?? ""}
+                className="rounded border border-zinc-300 bg-white px-3 py-2 md:col-span-2"
+              />
+              <button className="rounded border border-zinc-300 px-3 py-2 hover:bg-zinc-100">Save</button>
+            </form>
+            <form action={deleteFlavor} className="mt-2">
+              <input type="hidden" name="id" value={flavor.id} />
+              <button className="rounded border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-50">
+                Delete Flavor
+              </button>
+            </form>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
