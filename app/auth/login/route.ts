@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { getCachedClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
-  const supabase = await getCachedClient();
+  const supabase = await createClient();
   const origin = new URL(request.url).origin;
   const redirectTo = `${origin}/auth/callback`;
 

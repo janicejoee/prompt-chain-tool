@@ -16,7 +16,7 @@ export default function ForbiddenPage() {
         </p>
         <div className="mt-4 flex gap-2">
           <Link
-            href="/auth/logout?next=/"
+            href="/auth/logout?redirect=/"
             className="rounded-md border border-amber-300 bg-white px-3 py-1.5 text-sm"
           >
             Sign out
