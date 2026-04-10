@@ -1,17 +1,16 @@
 import { createServerClient as createSupabaseServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { cache } from "react";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-  process.env.SUPABASE_ANON_KEY ??
-  process.env.SUPABASE_KEY;
+import {
+  getSupabaseCookieOptions,
+  getSupabaseUrlAndAnonKey,
+} from "@/lib/supabase/ssr-shared";
 
 function getEnv() {
+  const { supabaseUrl, supabaseAnonKey } = getSupabaseUrlAndAnonKey();
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(
-      "Missing Supabase env vars. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY (or SUPABASE_ANON_KEY) in .env.local"
+      "Missing Supabase env vars. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local"
     );
   }
   return { supabaseUrl, supabaseAnonKey };
@@ -22,6 +21,7 @@ export async function createClient() {
   const { supabaseUrl, supabaseAnonKey } = getEnv();
   const cookieStore = await cookies();
   return createSupabaseServerClient(supabaseUrl, supabaseAnonKey, {
+    cookieOptions: getSupabaseCookieOptions(),
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -40,6 +40,7 @@ async function createReadOnlyClient() {
   const { supabaseUrl, supabaseAnonKey } = getEnv();
   const cookieStore = await cookies();
   return createSupabaseServerClient(supabaseUrl, supabaseAnonKey, {
+    cookieOptions: getSupabaseCookieOptions(),
     cookies: {
       getAll() {
         return cookieStore.getAll();

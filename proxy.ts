@@ -1,17 +1,25 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+import {
+  getSupabaseCookieOptions,
+  getSupabaseUrlAndAnonKey,
+} from "@/lib/supabase/ssr-shared";
 
 export async function proxy(request: NextRequest) {
+  const { supabaseUrl, supabaseAnonKey } = getSupabaseUrlAndAnonKey();
   if (!supabaseUrl || !supabaseAnonKey) {
+    if (process.env.NODE_ENV === "production") {
+      console.error(
+        "[proxy] Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY; auth will not refresh."
+      );
+    }
     return NextResponse.next();
   }
 
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookieOptions: getSupabaseCookieOptions(),
     cookies: {
       getAll() {
         return request.cookies.getAll();
