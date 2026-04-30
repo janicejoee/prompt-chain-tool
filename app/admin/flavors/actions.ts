@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getCachedClient, getCachedUser } from "@/lib/supabase/server";
+import { getCachedClient } from "@/lib/supabase/server";
 
 function asNumber(value: FormDataEntryValue | null, fallback = 0) {
   const n = Number(value);
@@ -21,15 +21,9 @@ export async function createFlavor(formData: FormData) {
   }
 
   const supabase = await getCachedClient();
-  const user = await getCachedUser();
-  if (!user) {
-    redirect(withError("/admin/flavors", "Please log in again."));
-  }
   const { error } = await supabase.from("humor_flavors").insert({
     slug,
     description: description || null,
-    created_by_user_id: user.id,
-    modified_by_user_id: user.id,
   });
   if (error) {
     redirect(withError("/admin/flavors", `Create flavor failed: ${error.message}`));
@@ -46,13 +40,9 @@ export async function updateFlavor(formData: FormData) {
   }
 
   const supabase = await getCachedClient();
-  const user = await getCachedUser();
-  if (!user) {
-    redirect(withError("/admin/flavors", "Please log in again."));
-  }
   const { error } = await supabase
     .from("humor_flavors")
-    .update({ slug, description: description || null, modified_by_user_id: user.id })
+    .update({ slug, description: description || null })
     .eq("id", id);
   if (error) {
     redirect(withError("/admin/flavors", `Update flavor failed: ${error.message}`));
@@ -69,10 +59,6 @@ export async function deleteFlavor(formData: FormData) {
   }
 
   const supabase = await getCachedClient();
-  const user = await getCachedUser();
-  if (!user) {
-    redirect(withError("/admin/flavors", "Please log in again."));
-  }
   const { error: stepDeleteError } = await supabase
     .from("humor_flavor_steps")
     .delete()
@@ -98,11 +84,6 @@ export async function createStep(formData: FormData) {
   }
 
   const supabase = await getCachedClient();
-  const user = await getCachedUser();
-  if (!user) {
-    redirect(withError(`/admin/flavors/${flavorId}`, "Please log in again."));
-  }
-
   const { data: existing, error: existingError } = await supabase
     .from("humor_flavor_steps")
     .select("order_by")
@@ -118,7 +99,6 @@ export async function createStep(formData: FormData) {
 
   const { error } = await supabase.from("humor_flavor_steps").insert({
     humor_flavor_id: flavorId,
-    created_by_user_id: user.id,
     order_by: nextOrder,
     description: String(formData.get("description") ?? "").trim() || null,
     llm_system_prompt: String(formData.get("llm_system_prompt") ?? "").trim() || null,
