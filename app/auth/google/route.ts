@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getRequestOrigin } from "@/lib/supabase/ssr-shared";
 
 export async function GET(request: Request) {
   const supabase = await createClient();
-  const origin = new URL(request.url).origin;
+  const origin = getRequestOrigin(request);
   const redirectTo = `${origin}/auth/callback`;
 
   const {
