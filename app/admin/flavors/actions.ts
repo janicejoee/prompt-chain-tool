@@ -13,6 +13,18 @@ function withError(path: string, message: string) {
   return `${path}?error=${encodeURIComponent(message)}`;
 }
 
+async function getActionUserIdOrRedirect(path: string) {
+  const supabase = await getCachedClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
+  if (!userId) {
+    redirect(withError(path, "Please log in again."));
+  }
+  return userId;
+}
+
 export async function createFlavor(formData: FormData) {
   const slug = String(formData.get("slug") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
@@ -21,9 +33,12 @@ export async function createFlavor(formData: FormData) {
   }
 
   const supabase = await getCachedClient();
+  const userId = await getActionUserIdOrRedirect("/auth/login");
   const { error } = await supabase.from("humor_flavors").insert({
     slug,
     description: description || null,
+    created_by_user_id: userId,
+    modified_by_user_id: userId,
   });
   if (error) {
     redirect(withError("/admin/flavors", `Create flavor failed: ${error.message}`));
@@ -84,6 +99,7 @@ export async function createStep(formData: FormData) {
   }
 
   const supabase = await getCachedClient();
+  const userId = await getActionUserIdOrRedirect("/auth/login");
   const { data: existing, error: existingError } = await supabase
     .from("humor_flavor_steps")
     .select("order_by")
@@ -99,6 +115,7 @@ export async function createStep(formData: FormData) {
 
   const { error } = await supabase.from("humor_flavor_steps").insert({
     humor_flavor_id: flavorId,
+    created_by_user_id: userId,
     order_by: nextOrder,
     description: String(formData.get("description") ?? "").trim() || null,
     llm_system_prompt: String(formData.get("llm_system_prompt") ?? "").trim() || null,
