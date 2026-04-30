@@ -25,6 +25,11 @@ async function getActionUserIdOrRedirect(path: string) {
   return userId;
 }
 
+function getSubmittedUserId(formData: FormData): string | null {
+  const raw = String(formData.get("created_by_user_id") ?? "").trim();
+  return raw || null;
+}
+
 export async function createFlavor(formData: FormData) {
   const slug = String(formData.get("slug") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
@@ -33,7 +38,7 @@ export async function createFlavor(formData: FormData) {
   }
 
   const supabase = await getCachedClient();
-  const userId = await getActionUserIdOrRedirect("/auth/login");
+  const userId = getSubmittedUserId(formData) ?? (await getActionUserIdOrRedirect("/auth/login"));
   const { error } = await supabase.from("humor_flavors").insert({
     slug,
     description: description || null,
@@ -99,7 +104,7 @@ export async function createStep(formData: FormData) {
   }
 
   const supabase = await getCachedClient();
-  const userId = await getActionUserIdOrRedirect("/auth/login");
+  const userId = getSubmittedUserId(formData) ?? (await getActionUserIdOrRedirect("/auth/login"));
   const { data: existing, error: existingError } = await supabase
     .from("humor_flavor_steps")
     .select("order_by")
