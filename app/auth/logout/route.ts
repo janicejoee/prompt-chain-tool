@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getRequestOrigin } from "@/lib/supabase/ssr-shared";
 
 function getRedirectTarget(request: Request): string {
   const url = new URL(request.url);
   const redirectParam = url.searchParams.get("redirect");
-  const origin = getRequestOrigin(request);
+  const origin = request.headers.get("origin") ?? url.origin;
   if (redirectParam?.startsWith("/")) return origin + redirectParam;
   return origin;
 }
