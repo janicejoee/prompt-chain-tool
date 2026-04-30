@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getCachedClient, getCachedUser } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { createFlavor, deleteFlavor, updateFlavor } from "./actions";
 import type { HumorFlavor } from "@/lib/types/humor";
 
@@ -12,8 +12,7 @@ export default async function FlavorsPage({
 }) {
   const { error: actionError, q } = await searchParams;
   const slugQuery = q?.trim() ?? "";
-  const supabase = await getCachedClient();
-  const user = await getCachedUser();
+  const supabase = await createClient();
   let query = supabase
     .from("humor_flavors")
     .select("id, slug, description, created_datetime_utc")
@@ -63,7 +62,6 @@ export default async function FlavorsPage({
         action={createFlavor}
         className="grid gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4 md:grid-cols-3"
       >
-        <input type="hidden" name="created_by_user_id" value={user?.id ?? ""} />
         <input
           name="slug"
           required
@@ -75,6 +73,10 @@ export default async function FlavorsPage({
           placeholder="Description"
           className="rounded border border-zinc-300 bg-white px-3 py-2"
         />
+        <label className="flex items-center gap-2 text-sm text-zinc-700">
+          <input type="checkbox" name="is_pinned" className="h-4 w-4" />
+          Is pinned
+        </label>
         <button className="rounded bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700">
           Create Flavor
         </button>

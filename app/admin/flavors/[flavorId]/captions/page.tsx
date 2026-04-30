@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getCachedClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import type { CaptionRow } from "@/lib/types/humor";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ export default async function FlavorCaptionsPage({
 }) {
   const { flavorId } = await params;
   const id = Number(flavorId);
-  const supabase = await getCachedClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("captions")

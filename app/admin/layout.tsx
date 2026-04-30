@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getCachedUser } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { isCurrentUserAdmin } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +10,10 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getCachedUser();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) redirect("/auth/login");
 
   const isAdmin = await isCurrentUserAdmin();

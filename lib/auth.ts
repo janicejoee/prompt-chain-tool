@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { getCachedClient, getCachedUser } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 type AdminProfile = {
   is_superadmin: boolean | null;
@@ -7,10 +7,12 @@ type AdminProfile = {
 };
 
 export const getCachedAdminProfile = cache(async (): Promise<AdminProfile | null> => {
-  const user = await getCachedUser();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const supabase = await getCachedClient();
   const { data, error } = await supabase
     .from("profiles")
     .select("is_superadmin, is_matrix_admin")

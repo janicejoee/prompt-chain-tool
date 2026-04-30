@@ -1,12 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import {
-  getSupabaseCookieOptions,
-  getSupabaseUrlAndAnonKey,
-} from "@/lib/supabase/ssr-shared";
+
+function getSupabaseCookieOptions() {
+  if (process.env.VERCEL === "1") return { secure: true };
+  return {};
+}
 
 export async function proxy(request: NextRequest) {
-  const { supabaseUrl, supabaseAnonKey } = getSupabaseUrlAndAnonKey();
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!supabaseUrl || !supabaseAnonKey) {
     if (process.env.NODE_ENV === "production") {
       console.error(
