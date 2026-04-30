@@ -27,15 +27,19 @@ export async function createClient() {
         return cookieStore.getAll();
       },
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          cookieStore.set(name, value, options);
-        });
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        } catch {
+          // Called from a Server Component — safe to ignore.
+        }
       },
     },
   });
 }
 
-/** Read-only cookies (setAll no-op). Use in Server Components and Server Actions. */
+/** Cached server client for Server Components and Server Actions. */
 async function createReadOnlyClient() {
   const { supabaseUrl, supabaseAnonKey } = getEnv();
   const cookieStore = await cookies();
@@ -45,8 +49,14 @@ async function createReadOnlyClient() {
       getAll() {
         return cookieStore.getAll();
       },
-      setAll() {
-        // No-op: cookie writes only allowed in Route Handlers
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        } catch {
+          // Called from a Server Component — safe to ignore.
+        }
       },
     },
   });
