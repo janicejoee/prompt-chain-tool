@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createClient, getCachedClient } from "@/lib/supabase/server";
+import { getCachedClient, getCachedUser } from "@/lib/supabase/server";
 
 function asNumber(value: FormDataEntryValue | null, fallback = 0) {
   const n = Number(value);
@@ -20,10 +20,8 @@ export async function createFlavor(formData: FormData) {
     redirect(withError("/admin/flavors", "Slug is required."));
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await getCachedClient();
+  const user = await getCachedUser();
   if (!user) {
     redirect(withError("/auth/login", "Please log in again."));
   }
@@ -91,10 +89,8 @@ export async function createStep(formData: FormData) {
     redirect(withError("/admin/flavors", "Flavor id is required for creating a step."));
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await getCachedClient();
+  const user = await getCachedUser();
   if (!user) {
     redirect(withError("/auth/login", "Please log in again."));
   }
