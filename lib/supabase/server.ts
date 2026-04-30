@@ -23,13 +23,25 @@ export async function createClient() {
         return cookieStore.getAll();
       },
       setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
-          });
-        } catch {
-          // Called from a Server Component — safe to ignore.
-        }
+        cookiesToSet.forEach(({ name, value, options }) => {
+          cookieStore.set(name, value, options);
+        });
+      },
+    },
+  });
+}
+
+/** Use in Server Components/Server Actions where cookie writes are not required. */
+export async function createReadOnlyClient() {
+  const { supabaseUrl, supabaseAnonKey } = getEnv();
+  const cookieStore = await cookies();
+  return createSupabaseServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll() {
+        // No-op outside route handlers.
       },
     },
   });
