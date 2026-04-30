@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getCachedClient } from "@/lib/supabase/server";
 
 function asNumber(value: FormDataEntryValue | null, fallback = 0) {
   const n = Number(value);
@@ -20,19 +20,10 @@ export async function createFlavor(formData: FormData) {
     redirect(withError("/admin/flavors", "Slug is required."));
   }
 
-  const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const userId = session?.user?.id;
-  if (!userId) {
-    redirect(withError("/auth/login", "Please log in again."));
-  }
+  const supabase = await getCachedClient();
   const { error } = await supabase.from("humor_flavors").insert({
     slug,
     description: description || null,
-    created_by_user_id: userId,
-    modified_by_user_id: userId,
   });
   if (error) {
     redirect(withError("/admin/flavors", `Create flavor failed: ${error.message}`));
@@ -48,7 +39,7 @@ export async function updateFlavor(formData: FormData) {
     redirect(withError("/admin/flavors", "Flavor id and slug are required."));
   }
 
-  const supabase = await createClient();
+  const supabase = await getCachedClient();
   const { error } = await supabase
     .from("humor_flavors")
     .update({ slug, description: description || null })
@@ -67,7 +58,7 @@ export async function deleteFlavor(formData: FormData) {
     redirect(withError("/admin/flavors", "Flavor id is required."));
   }
 
-  const supabase = await createClient();
+  const supabase = await getCachedClient();
   const { error: stepDeleteError } = await supabase
     .from("humor_flavor_steps")
     .delete()
@@ -92,14 +83,7 @@ export async function createStep(formData: FormData) {
     redirect(withError("/admin/flavors", "Flavor id is required for creating a step."));
   }
 
-  const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const userId = session?.user?.id;
-  if (!userId) {
-    redirect(withError("/auth/login", "Please log in again."));
-  }
+  const supabase = await getCachedClient();
   const { data: existing, error: existingError } = await supabase
     .from("humor_flavor_steps")
     .select("order_by")
@@ -115,7 +99,6 @@ export async function createStep(formData: FormData) {
 
   const { error } = await supabase.from("humor_flavor_steps").insert({
     humor_flavor_id: flavorId,
-    created_by_user_id: userId,
     order_by: nextOrder,
     description: String(formData.get("description") ?? "").trim() || null,
     llm_system_prompt: String(formData.get("llm_system_prompt") ?? "").trim() || null,
@@ -140,7 +123,7 @@ export async function updateStep(formData: FormData) {
     redirect(withError("/admin/flavors", "Step id and flavor id are required."));
   }
 
-  const supabase = await createClient();
+  const supabase = await getCachedClient();
   const { error } = await supabase
     .from("humor_flavor_steps")
     .update({
@@ -168,7 +151,7 @@ export async function deleteStep(formData: FormData) {
     redirect(withError("/admin/flavors", "Step id and flavor id are required."));
   }
 
-  const supabase = await createClient();
+  const supabase = await getCachedClient();
   const { error } = await supabase.from("humor_flavor_steps").delete().eq("id", id);
   if (error) {
     redirect(withError(`/admin/flavors/${flavorId}`, `Delete step failed: ${error.message}`));
@@ -184,7 +167,7 @@ export async function moveStep(formData: FormData) {
     redirect(withError("/admin/flavors", "Step id and flavor id are required."));
   }
 
-  const supabase = await createClient();
+  const supabase = await getCachedClient();
   const { data: current, error: currentError } = await supabase
     .from("humor_flavor_steps")
     .select("id, order_by")
