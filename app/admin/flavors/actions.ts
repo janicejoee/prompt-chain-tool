@@ -13,18 +13,6 @@ function withError(path: string, message: string) {
   return `${path}?error=${encodeURIComponent(message)}`;
 }
 
-async function getActionUserIdOrRedirect(path: string) {
-  const supabase = await getCachedClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const userId = session?.user?.id;
-  if (!userId) {
-    redirect(withError(path, "Please log in again."));
-  }
-  return userId;
-}
-
 function getSubmittedUserId(formData: FormData): string | null {
   const raw = String(formData.get("created_by_user_id") ?? "").trim();
   return raw || null;
@@ -38,7 +26,10 @@ export async function createFlavor(formData: FormData) {
   }
 
   const supabase = await getCachedClient();
-  const userId = getSubmittedUserId(formData) ?? (await getActionUserIdOrRedirect("/auth/login"));
+  const userId = getSubmittedUserId(formData);
+  if (!userId) {
+    redirect(withError("/auth/login", "Please log in again."));
+  }
   const { error } = await supabase.from("humor_flavors").insert({
     slug,
     description: description || null,
@@ -104,7 +95,10 @@ export async function createStep(formData: FormData) {
   }
 
   const supabase = await getCachedClient();
-  const userId = getSubmittedUserId(formData) ?? (await getActionUserIdOrRedirect("/auth/login"));
+  const userId = getSubmittedUserId(formData);
+  if (!userId) {
+    redirect(withError("/auth/login", "Please log in again."));
+  }
   const { data: existing, error: existingError } = await supabase
     .from("humor_flavor_steps")
     .select("order_by")
