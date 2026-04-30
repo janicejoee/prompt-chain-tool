@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getCachedClient } from "@/lib/supabase/server";
+import { createClient, getCachedClient } from "@/lib/supabase/server";
 
 function asNumber(value: FormDataEntryValue | null, fallback = 0) {
   const n = Number(value);
@@ -20,10 +20,18 @@ export async function createFlavor(formData: FormData) {
     redirect(withError("/admin/flavors", "Slug is required."));
   }
 
-  const supabase = await getCachedClient();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect(withError("/auth/login", "Please log in again."));
+  }
   const { error } = await supabase.from("humor_flavors").insert({
     slug,
     description: description || null,
+    created_by_user_id: user.id,
+    modified_by_user_id: user.id,
   });
   if (error) {
     redirect(withError("/admin/flavors", `Create flavor failed: ${error.message}`));
@@ -83,7 +91,13 @@ export async function createStep(formData: FormData) {
     redirect(withError("/admin/flavors", "Flavor id is required for creating a step."));
   }
 
-  const supabase = await getCachedClient();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect(withError("/auth/login", "Please log in again."));
+  }
   const { data: existing, error: existingError } = await supabase
     .from("humor_flavor_steps")
     .select("order_by")
@@ -99,6 +113,7 @@ export async function createStep(formData: FormData) {
 
   const { error } = await supabase.from("humor_flavor_steps").insert({
     humor_flavor_id: flavorId,
+    created_by_user_id: user.id,
     order_by: nextOrder,
     description: String(formData.get("description") ?? "").trim() || null,
     llm_system_prompt: String(formData.get("llm_system_prompt") ?? "").trim() || null,

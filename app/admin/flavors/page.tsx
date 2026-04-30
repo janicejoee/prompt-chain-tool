@@ -8,14 +8,19 @@ export const dynamic = "force-dynamic";
 export default async function FlavorsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; q?: string }>;
 }) {
-  const { error: actionError } = await searchParams;
+  const { error: actionError, q } = await searchParams;
+  const slugQuery = q?.trim() ?? "";
   const supabase = await getCachedClient();
-  const { data: flavors, error } = await supabase
+  let query = supabase
     .from("humor_flavors")
     .select("id, slug, description, created_datetime_utc")
     .order("created_datetime_utc", { ascending: false });
+  if (slugQuery) {
+    query = query.ilike("slug", `%${slugQuery}%`);
+  }
+  const { data: flavors, error } = await query;
 
   if (error) {
     return <p className="text-red-600">Failed to load flavors: {error.message}</p>;
@@ -23,18 +28,36 @@ export default async function FlavorsPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold">Humor Flavors</h2>
-        <p className="text-sm text-zinc-600">
-          Create, edit, and delete humor flavors.
-        </p>
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div>
+          <h2 className="text-xl font-semibold">Humor Flavors</h2>
+          <p className="text-sm text-zinc-600">
+            Create, edit, and delete humor flavors.
+          </p>
+        </div>
+        <form className="flex flex-col gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 md:flex-row md:items-center">
+          <input
+            type="search"
+            name="q"
+            defaultValue={slugQuery}
+            placeholder="Type slug keyword..."
+            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 md:w-72"
+          />
+          <button className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-medium hover:bg-zinc-100">
+            Search
+          </button>
+          {slugQuery ? (
+            <Link href="/admin/flavors" className="text-sm text-zinc-700 underline underline-offset-2">
+              Clear
+            </Link>
+          ) : null}
+        </form>
       </div>
       {actionError ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {actionError}
         </p>
       ) : null}
-
       <form
         action={createFlavor}
         className="grid gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4 md:grid-cols-3"
