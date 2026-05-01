@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { FlavorTester } from "@/components/flavor-tester";
+import { createReadOnlyClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -10,23 +12,22 @@ export default async function FlavorTestPage({
 }) {
   const { flavorId } = await params;
   const id = Number(flavorId);
+  if (!Number.isFinite(id)) notFound();
+
+  const supabase = await createReadOnlyClient();
+  const { data: row } = await supabase.from("humor_flavors").select("slug").eq("id", id).single();
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Test Flavor #{id}</h2>
+    <div className="space-y-8">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           href={`/admin/flavors/${id}`}
-          className="rounded border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100"
+          className="inline-flex items-center gap-2 text-sm font-medium text-teal-800 hover:text-teal-950"
         >
-          Back to flavor
+          <span aria-hidden>←</span> Back to flavor
         </Link>
       </div>
-      <p className="text-sm text-zinc-600">
-        Select an image set to run the full pipeline: presign upload URL, upload image bytes,
-        register image URL, then generate captions with this humor flavor.
-      </p>
-      <FlavorTester flavorId={id} />
+      <FlavorTester flavorId={id} flavorSlug={row?.slug} />
     </div>
   );
 }
