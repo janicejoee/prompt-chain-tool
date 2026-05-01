@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createReadOnlyClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { createStep, deleteStep, moveStep, updateStep } from "../actions";
 import type { HumorFlavor, HumorFlavorStep } from "@/lib/types/humor";
 
@@ -17,7 +17,10 @@ export default async function FlavorDetailPage({
   const { error: actionError } = await searchParams;
   const id = Number(flavorId);
   if (!Number.isFinite(id)) notFound();
-  const supabase = await createReadOnlyClient();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const [{ data: flavor }, { data: steps }] = await Promise.all([
     supabase
       .from("humor_flavors")
@@ -65,6 +68,7 @@ export default async function FlavorDetailPage({
 
       <form action={createStep} className="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
         <input type="hidden" name="humor_flavor_id" value={id} />
+        <input type="hidden" name="created_by_user_id" value={user?.id ?? ""} />
         <h3 className="font-medium">Create Step</h3>
         <input
           name="description"

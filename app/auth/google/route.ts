@@ -11,7 +11,10 @@ export async function GET(request: Request) {
     error,
   } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo },
+    options: {
+      redirectTo,
+      queryParams: { prompt: "select_account" },
+    },
   });
 
   if (error) {

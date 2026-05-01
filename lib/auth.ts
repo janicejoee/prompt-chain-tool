@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { createReadOnlyClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 type AdminProfile = {
   is_superadmin: boolean | null;
@@ -7,7 +7,7 @@ type AdminProfile = {
 };
 
 export const getCachedAdminProfile = cache(async (): Promise<AdminProfile | null> => {
-  const supabase = await createReadOnlyClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { LogoutButton } from "@/components/logout-button";
-import { createReadOnlyClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { isCurrentUserAdmin } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +10,7 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createReadOnlyClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -28,10 +27,12 @@ export default async function AdminLayout({
           <h1 className="text-xl font-semibold">Prompt Chain Admin</h1>
           <p className="text-sm text-zinc-600">{user.email}</p>
         </div>
-        <LogoutButton
-          redirect="/"
-          className="cursor-pointer rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm hover:bg-zinc-100"
-        />
+        <Link
+          href="/auth/logout?redirect=/"
+          className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm hover:bg-zinc-100"
+        >
+          Logout
+        </Link>
       </div>
       <nav className="mb-6 flex gap-3 text-sm">
         <Link href="/admin" className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 hover:bg-zinc-100">

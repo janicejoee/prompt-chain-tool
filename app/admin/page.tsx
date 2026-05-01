@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { createReadOnlyClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminHomePage() {
-  const supabase = await createReadOnlyClient();
+  const supabase = await createClient();
   const [{ count: flavors }, { count: steps }, { count: captions }] = await Promise.all([
     supabase.from("humor_flavors").select("id", { count: "exact", head: true }),
     supabase.from("humor_flavor_steps").select("id", { count: "exact", head: true }),

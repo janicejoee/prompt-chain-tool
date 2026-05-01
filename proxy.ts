@@ -38,6 +38,7 @@ export async function proxy(request: NextRequest) {
     },
   });
 
+  // Refresh auth cookies when needed; route protection stays in layouts/routes.
   await supabase.auth.getUser();
 
   return response;
