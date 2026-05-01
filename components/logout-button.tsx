@@ -4,7 +4,6 @@ type Props = {
   children?: React.ReactNode;
 };
 
-/** Logout must use POST: a Link to /auth/logout is prefetched (GET) and must not sign out. */
 export function LogoutButton({
   redirect = "/",
   className,

@@ -32,6 +32,7 @@ export default async function Home() {
         ) : (
           <Link
             href="/auth/login"
+            prefetch={false}
             className="flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-50"
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
@@ -56,9 +57,7 @@ export default async function Home() {
           </Link>
         )}
         {user ? (
-          <>
-            <LogoutButton className="cursor-pointer rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-100" />
-          </>
+          <LogoutButton className="cursor-pointer rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-100" />
         ) : null}
       </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { createReadOnlyClient } from "@/lib/supabase/server";
 import {
   createHumorFlavor,
   createHumorFlavorStep,
@@ -19,11 +20,6 @@ function asNumber(value: FormDataEntryValue | null, fallback = 0) {
 
 function withError(path: string, message: string) {
   return `${path}?error=${encodeURIComponent(message)}`;
-}
-
-function getSubmittedUserId(formData: FormData): string | null {
-  const raw = String(formData.get("created_by_user_id") ?? "").trim();
-  return raw || null;
 }
 
 export async function createFlavor(formData: FormData) {
@@ -85,14 +81,17 @@ export async function createStep(formData: FormData) {
     redirect(withError("/admin/flavors", "Flavor id is required for creating a step."));
   }
 
-  const userId = getSubmittedUserId(formData);
-  if (!userId) {
+  const supabase = await createReadOnlyClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
     redirect(withError("/auth/login", "Please log in again."));
   }
   try {
     await createHumorFlavorStep({
       humor_flavor_id: flavorId,
-      created_by_user_id: userId,
+      created_by_user_id: user.id,
       description: String(formData.get("description") ?? "").trim(),
       llm_system_prompt: String(formData.get("llm_system_prompt") ?? "").trim(),
       llm_user_prompt: String(formData.get("llm_user_prompt") ?? "").trim(),

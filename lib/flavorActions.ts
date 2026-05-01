@@ -1,5 +1,5 @@
 import { createReadOnlyClient } from "@/lib/supabase/server";
-import type { HumorFlavor, HumorFlavorStep } from "@/lib/types/humor";
+import type { HumorFlavor } from "@/lib/types/humor";
 
 type CreateHumorFlavorInput = {
   slug: string;

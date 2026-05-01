@@ -18,9 +18,6 @@ export default async function FlavorDetailPage({
   const id = Number(flavorId);
   if (!Number.isFinite(id)) notFound();
   const supabase = await createReadOnlyClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
   const [{ data: flavor }, { data: steps }] = await Promise.all([
     supabase
       .from("humor_flavors")
@@ -68,7 +65,6 @@ export default async function FlavorDetailPage({
 
       <form action={createStep} className="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
         <input type="hidden" name="humor_flavor_id" value={id} />
-        <input type="hidden" name="created_by_user_id" value={user?.id ?? ""} />
         <h3 className="font-medium">Create Step</h3>
         <input
           name="description"

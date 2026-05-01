@@ -16,35 +16,17 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const raw = formData.get("redirect");
     if (typeof raw === "string") redirectPath = raw;
-  } catch {
-    // empty body
-  }
+  } catch {}
 
   const supabase = await createClient();
   await supabase.auth.signOut();
   return NextResponse.redirect(getRedirectTarget(request, redirectPath));
 }
 
-/** Never sign out on GET — Next prefetches Link targets and RSC may GET this route. */
+/** GET does not sign out (prefetch/RSC). Use POST via LogoutButton. */
 export async function GET() {
-  return new NextResponse(
-    `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width"/><title>Sign out</title></head>
-<body style="font-family:system-ui;margin:2rem">
-  <p>If you opened this URL directly, use the button below to sign out.</p>
-  <form method="post" action="/auth/logout">
-    <input type="hidden" name="redirect" value="/" />
-    <button type="submit">Sign out</button>
-  </form>
-</body>
-</html>`,
-    {
-      status: 200,
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-        "Cache-Control": "no-store",
-      },
-    }
-  );
+  return new NextResponse(null, {
+    status: 204,
+    headers: { "Cache-Control": "no-store" },
+  });
 }

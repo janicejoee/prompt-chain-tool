@@ -13,10 +13,7 @@ function getEnv() {
   return { supabaseUrl, supabaseAnonKey };
 }
 
-/**
- * Use only in Route Handlers where cookies may be written (OAuth, callback, logout).
- * Do not use in Server Components or server actions — failed refresh writes can clear the session.
- */
+/** Writable cookies: OAuth / callback / logout route handlers only. */
 export async function createClient() {
   const { supabaseUrl, supabaseAnonKey } = getEnv();
   const cookieStore = await cookies();
@@ -34,7 +31,7 @@ export async function createClient() {
   });
 }
 
-/** Server Components, server actions, and data helpers: read cookies only; never clear session via setAll. */
+/** Read-only cookie adapter for RSC, server actions, and data helpers. */
 export async function createReadOnlyClient() {
   const { supabaseUrl, supabaseAnonKey } = getEnv();
   const cookieStore = await cookies();
@@ -43,9 +40,7 @@ export async function createReadOnlyClient() {
       getAll() {
         return cookieStore.getAll();
       },
-      setAll() {
-        // no-op
-      },
+      setAll() {},
     },
   });
 }
