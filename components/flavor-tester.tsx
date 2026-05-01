@@ -70,6 +70,8 @@ export function FlavorTester({ flavorId, flavorSlug }: Props) {
   const canGenerate =
     !!file ||
     (!file && isHttpUrl(trimmedPaste));
+  const hasCaptions = captions.length > 0;
+  const currentCaption = captions[captionIndex];
 
   const handleFile = useCallback((selected: File | null) => {
     if (!selected) return;
@@ -177,27 +179,34 @@ export function FlavorTester({ flavorId, flavorSlug }: Props) {
   };
 
   return (
-    <div className="rounded-3xl border border-zinc-200 bg-white shadow-lg shadow-zinc-200/50">
-      <div className="border-b border-zinc-100 px-6 py-8 sm:px-10 sm:py-10">
-        <h2 className="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
-          Test this flavor<span className="text-zinc-500"> #{flavorId}</span>
+    <div className="overflow-hidden rounded-3xl border border-zinc-200/90 bg-white shadow-lg shadow-zinc-200/60">
+      <div className="border-b border-zinc-100 bg-gradient-to-b from-zinc-50 to-white px-6 py-8 sm:px-10 sm:py-10">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="inline-flex items-center rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold tracking-wide text-teal-700 uppercase">
+            Flavor test
+          </span>
+          <span className="text-sm font-medium text-zinc-500">ID #{flavorId}</span>
+        </div>
+        <h2 className="mt-3 text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
+          Generate captions for this flavor
           {slugLine ? (
             <span className="mt-2 block text-xl font-semibold capitalize text-teal-800 sm:text-2xl">{slugLine}</span>
           ) : null}
         </h2>
-        <p className="mt-3 max-w-xl text-base text-zinc-600">
-          Upload an image (drag & drop) or paste a public HTTPS URL.
+        <p className="mt-3 max-w-2xl text-base text-zinc-600">
+          Upload an image (drag and drop) or paste a public HTTPS URL. We run your current flavor against the same
+          caption pipeline used in production.
         </p>
       </div>
 
       <form
-        className="mx-auto max-w-3xl px-4 pb-8 sm:px-6 sm:pb-12"
+        className="mx-auto max-w-4xl space-y-7 px-4 pb-8 pt-6 sm:px-6 sm:pb-12 sm:pt-8"
         onSubmit={(e) => {
           e.preventDefault();
           handleGenerateCaptions(new FormData(e.currentTarget));
         }}
       >
-        <div className="mb-6 space-y-2">
+        <div className="space-y-2">
           <label htmlFor={urlInputId} className="block text-sm font-semibold text-zinc-900">
             Image URL (optional)
           </label>
@@ -209,11 +218,10 @@ export function FlavorTester({ flavorId, flavorSlug }: Props) {
             onChange={(e) => handlePasteUrlChange(e.target.value)}
             disabled={isBusy}
             placeholder="https://..."
-            className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-[15px] text-zinc-900 placeholder:text-zinc-400 outline-none ring-zinc-900/10 focus:border-zinc-400 focus:ring-4 disabled:opacity-60"
+            className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-[15px] text-zinc-900 placeholder:text-zinc-400 outline-none ring-zinc-900/10 transition focus:border-zinc-400 focus:ring-4 disabled:opacity-60"
           />
           <p className="text-xs text-zinc-500">
-            We try to download the image in your browser and use the same upload pipeline as drag-and-drop (like
-            humor-project). If your host blocks cross-origin reads, we fall back to registering the URL server-side.
+            Tip: if URL fetching is blocked by CORS, we fall back to registering the image URL directly.
           </p>
         </div>
 
@@ -226,7 +234,9 @@ export function FlavorTester({ flavorId, flavorSlug }: Props) {
             onDragLeave={handleDragLeave}
             disabled={isBusy}
             className={`group w-full cursor-pointer rounded-2xl border-2 border-dashed px-4 py-16 text-center transition-all sm:px-8 sm:py-24 disabled:pointer-events-none disabled:opacity-50 ${
-              isDragging ? "border-teal-400 bg-teal-50/50" : "border-zinc-300 bg-zinc-50/70 hover:border-zinc-400 hover:bg-zinc-100/70"
+              isDragging
+                ? "border-teal-400 bg-teal-50/60 shadow-inner"
+                : "border-zinc-300 bg-zinc-50/70 hover:border-zinc-400 hover:bg-zinc-100/70"
             }`}
           >
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-teal-100/80 transition-transform group-hover:scale-110 group-hover:bg-teal-100 sm:h-20 sm:w-20">
@@ -243,7 +253,10 @@ export function FlavorTester({ flavorId, flavorSlug }: Props) {
               {isDragging ? "Drop your image here" : "Drag & drop an image here"}
             </p>
             <p className="mt-2 text-sm text-zinc-500">
-              or click to browse · JPEG, PNG, WebP, GIF (it&apos;s pronounced JIFF), HEIC
+              or click to browse, then generate captions in one click
+            </p>
+            <p className="mt-1 text-xs text-zinc-500">
+              Supported: JPEG, PNG, WebP, GIF (it&apos;s pronounced JIFF), HEIC
             </p>
             {typeError ? <p className="mt-3 text-sm font-medium text-red-600">{typeError}</p> : null}
             <input
@@ -282,6 +295,9 @@ export function FlavorTester({ flavorId, flavorSlug }: Props) {
             </div>
 
             <div className="space-y-3">
+              <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
+                {isBusy ? STATUS_LABEL[pipelineStatus] || "Working..." : hasCaptions ? "Captions generated successfully." : "Ready to run."}
+              </div>
               <button
                 type="submit"
                 disabled={isBusy || !canGenerate}
@@ -310,20 +326,23 @@ export function FlavorTester({ flavorId, flavorSlug }: Props) {
                 )}
               </button>
 
-              {error ? <p className="text-center text-sm font-medium text-red-600">{error}</p> : null}
+              {error ? (
+                <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{error}</p>
+              ) : null}
             </div>
 
-            {captions.length > 0 ? (
+            {hasCaptions ? (
               <article className="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50/80 shadow-sm">
-                <div className="px-5 pb-4 pt-5 sm:px-6 sm:pb-5 sm:pt-6">
+                <div className="border-b border-zinc-200/80 bg-white/80 px-5 py-3 sm:px-6">
+                  <p className="text-sm font-semibold text-zinc-800">Generated caption</p>
+                </div>
+                <div className="px-5 pb-4 pt-4 sm:px-6 sm:pb-5 sm:pt-5">
                   <p className="text-base leading-relaxed text-zinc-900 sm:text-lg">
-                    {typeof captions[captionIndex]?.content === "string"
-                      ? captions[captionIndex].content
-                      : JSON.stringify(captions[captionIndex])}
+                    {typeof currentCaption?.content === "string" ? currentCaption.content : JSON.stringify(currentCaption)}
                   </p>
                 </div>
 
-                {captions.length > 1 ? (
+                {hasCaptions && captions.length > 1 ? (
                   <div className="flex items-center justify-between border-t border-zinc-200 bg-white/70 px-5 py-3 sm:px-6">
                     <button
                       type="button"

@@ -27,23 +27,23 @@ export default async function FlavorsPage({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
-          <h2 className="text-xl font-semibold">Humor Flavors</h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-zinc-900">Humor Flavors</h2>
           <p className="text-sm text-zinc-600">
             Create, duplicate, edit, and delete humor flavors.
           </p>
         </div>
-        <form className="flex flex-col gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 md:flex-row md:items-center">
+        <form className="flex flex-col gap-2 rounded-xl border border-zinc-200 bg-zinc-50/80 p-3 md:flex-row md:items-center">
           <input
             type="search"
             name="q"
             defaultValue={slugQuery}
             placeholder="Type slug keyword..."
-            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 md:w-72"
+            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 md:w-72"
           />
-          <button className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-medium hover:bg-zinc-100">
+          <button className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium hover:bg-zinc-100">
             Search
           </button>
           {slugQuery ? (
@@ -54,62 +54,62 @@ export default async function FlavorsPage({
         </form>
       </div>
       {actionError ? (
-        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {actionError}
         </p>
       ) : null}
       <form
         action={createFlavor}
-        className="grid gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4 md:grid-cols-3"
+        className="grid gap-3 rounded-xl border border-zinc-200 bg-zinc-50/80 p-4 md:grid-cols-3"
       >
         <input
           name="slug"
           required
           placeholder="Slug (e.g. dry-observational)"
-          className="rounded border border-zinc-300 bg-white px-3 py-2"
+          className="rounded-lg border border-zinc-300 bg-white px-3 py-2"
         />
         <input
           name="description"
           placeholder="Description"
-          className="rounded border border-zinc-300 bg-white px-3 py-2"
+          className="rounded-lg border border-zinc-300 bg-white px-3 py-2"
         />
         <label className="flex items-center gap-2 text-sm text-zinc-700">
           <input type="checkbox" name="is_pinned" className="h-4 w-4" />
           Is pinned
         </label>
-        <button className="rounded bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700">
+        <button className="rounded-lg bg-zinc-900 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-800">
           Create Flavor
         </button>
       </form>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {(flavors as HumorFlavor[] | null)?.map((flavor) => (
-          <div key={flavor.id} className="rounded-lg border border-zinc-200 p-4">
-            <div className="mb-3 flex items-center justify-between">
+          <div key={flavor.id} className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="font-medium text-zinc-900">
+                <p className="font-semibold text-zinc-900">
                   #{flavor.id} {flavor.slug}
                 </p>
                 <p className="text-sm text-zinc-600">
                   {flavor.description || "No description"}
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Link
                   href={`/admin/flavors/${flavor.id}`}
-                  className="rounded border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100"
+                  className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-100"
                 >
                   Manage Steps
                 </Link>
                 <Link
                   href={`/admin/flavors/${flavor.id}/captions`}
-                  className="rounded border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100"
+                  className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-100"
                 >
                   Captions
                 </Link>
                 <Link
                   href={`/admin/flavors/${flavor.id}/test`}
-                  className="rounded border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100"
+                  className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-100"
                 >
                   Test
                 </Link>
@@ -120,18 +120,18 @@ export default async function FlavorsPage({
               <input
                 name="slug"
                 defaultValue={flavor.slug}
-                className="rounded border border-zinc-300 bg-white px-3 py-2"
+                className="rounded-lg border border-zinc-300 bg-white px-3 py-2"
               />
               <input
                 name="description"
                 defaultValue={flavor.description ?? ""}
-                className="rounded border border-zinc-300 bg-white px-3 py-2 md:col-span-2"
+                className="rounded-lg border border-zinc-300 bg-white px-3 py-2 md:col-span-2"
               />
-              <button className="rounded border border-zinc-300 px-3 py-2 hover:bg-zinc-100">Save</button>
+              <button className="rounded-lg border border-zinc-300 px-3 py-2 font-medium hover:bg-zinc-100">Save</button>
             </form>
             <form
               action={duplicateFlavor}
-              className="mt-3 flex flex-col gap-2 rounded-md border border-dashed border-zinc-300 bg-zinc-50/80 p-3 md:flex-row md:flex-wrap md:items-end"
+              className="mt-3 flex flex-col gap-2 rounded-lg border border-dashed border-zinc-300 bg-zinc-50/80 p-3 md:flex-row md:flex-wrap md:items-end"
             >
               <input type="hidden" name="source_id" value={flavor.id} />
               <div className="min-w-0 flex-1 md:max-w-xs">
@@ -143,24 +143,27 @@ export default async function FlavorsPage({
                   name="new_slug"
                   required
                   placeholder={`${flavor.slug}-copy`}
-                  className="w-full rounded border border-zinc-300 bg-white px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
                 />
               </div>
               <button
                 type="submit"
-                className="rounded border border-zinc-400 bg-white px-3 py-2 text-sm font-medium hover:bg-zinc-100"
+                className="rounded-lg border border-zinc-400 bg-white px-3 py-2 text-sm font-medium hover:bg-zinc-100"
               >
                 Duplicate flavor and steps
               </button>
             </form>
             <form action={deleteFlavor} className="mt-2">
               <input type="hidden" name="id" value={flavor.id} />
-              <button className="rounded border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-50">
+              <button className="rounded-lg border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50">
                 Delete Flavor
               </button>
             </form>
           </div>
         ))}
+        {!flavors?.length ? (
+          <p className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">No flavors found.</p>
+        ) : null}
       </div>
     </div>
   );

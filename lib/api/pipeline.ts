@@ -15,12 +15,7 @@ function formatPipelineErrorBody(status: number, body: string): string {
   if (!trimmed) return `Request failed (${status})`;
   try {
     const j = JSON.parse(trimmed) as { message?: string; statusMessage?: string };
-    if (typeof j.message === "string" && j.message) {
-      if (/not valid JSON/i.test(j.message)) {
-        return `${j.message} — This response usually comes from the flavor-caption path interpreting model text as JSON. Compare your request body and auth with the app where it succeeds (often \`humorFlavorId\` / registration flags differ).`;
-      }
-      return j.message;
-    }
+    if (typeof j.message === "string" && j.message) return j.message;
   } catch {
     /* not JSON */
   }
@@ -142,8 +137,18 @@ export async function generateCaptions(input: GenerateCaptionsInput) {
   };
 
   const response = await pipelinePost(input.accessToken, "/generate-captions", body);
-  const data: unknown = await readJsonResponse<unknown>(response, "generate-captions");
-  return (Array.isArray(data) ? data : [data]) as unknown[];
+  const raw = await response.text();
+  const trimmed = raw.trim();
+  if (!trimmed) return [];
+
+  try {
+    const data = JSON.parse(trimmed) as unknown;
+    return (Array.isArray(data) ? data : [data]) as unknown[];
+  } catch {
+    // Some backend paths return plain-text domain errors even on 2xx.
+    // Surface the backend message directly instead of a JSON parse exception.
+    throw new Error(trimmed.length > 800 ? `${trimmed.slice(0, 800)}…` : trimmed);
+  }
 }
 
 export type RunCaptionPipelineOptions = {
@@ -176,7 +181,7 @@ export async function runCaptionPipelineForFile(input: RunCaptionPipelineOptions
   const { imageId } = await registerImageUrl({
     accessToken: input.accessToken,
     imageUrl: cdnUrl,
-    isCommonUse: false,
+    isCommonUse: input.registerAsCommonUse ?? false,
   });
 
   onPipelineStatus?.("generating");

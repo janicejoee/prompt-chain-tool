@@ -22,7 +22,7 @@ export default async function FlavorTestPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           href={`/admin/flavors/${id}`}
-          className="inline-flex items-center gap-2 text-sm font-medium text-teal-800 hover:text-teal-950"
+          className="inline-flex items-center gap-2 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-sm font-semibold text-teal-800 transition hover:bg-teal-100 hover:text-teal-950"
         >
           <span aria-hidden>←</span> Back to flavor
         </Link>
