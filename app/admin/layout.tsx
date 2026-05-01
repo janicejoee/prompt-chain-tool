@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createReadOnlyClient } from "@/lib/supabase/server";
 import { isCurrentUserAdmin } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +10,7 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
+  const supabase = await createReadOnlyClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

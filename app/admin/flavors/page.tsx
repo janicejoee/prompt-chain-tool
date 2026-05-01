@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { createReadOnlyClient } from "@/lib/supabase/server";
 import { createFlavor, deleteFlavor, updateFlavor } from "./actions";
 import type { HumorFlavor } from "@/lib/types/humor";
 
@@ -12,7 +12,7 @@ export default async function FlavorsPage({
 }) {
   const { error: actionError, q } = await searchParams;
   const slugQuery = q?.trim() ?? "";
-  const supabase = await createClient();
+  const supabase = await createReadOnlyClient();
   let query = supabase
     .from("humor_flavors")
     .select("id, slug, description, created_datetime_utc")

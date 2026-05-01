@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createReadOnlyClient } from "@/lib/supabase/server";
 import { createStep, deleteStep, moveStep, updateStep } from "../actions";
 import type { HumorFlavor, HumorFlavorStep } from "@/lib/types/humor";
 
@@ -17,7 +17,7 @@ export default async function FlavorDetailPage({
   const { error: actionError } = await searchParams;
   const id = Number(flavorId);
   if (!Number.isFinite(id)) notFound();
-  const supabase = await createClient();
+  const supabase = await createReadOnlyClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

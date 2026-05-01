@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { createReadOnlyClient } from "@/lib/supabase/server";
 import { isCurrentUserAdmin } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const supabase = await createClient();
+  const supabase = await createReadOnlyClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

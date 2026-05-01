@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createReadOnlyClient } from "@/lib/supabase/server";
 import type { HumorFlavor, HumorFlavorStep } from "@/lib/types/humor";
 
 type CreateHumorFlavorInput = {
@@ -10,7 +10,7 @@ type CreateHumorFlavorInput = {
 export async function createHumorFlavor(
   flavor: CreateHumorFlavorInput
 ): Promise<HumorFlavor> {
-  const supabase = await createClient();
+  const supabase = await createReadOnlyClient();
   const { data, error } = await supabase
     .from("humor_flavors")
     .insert({
@@ -38,7 +38,7 @@ type UpdateHumorFlavorInput = {
 export async function updateHumorFlavor(
   flavor: UpdateHumorFlavorInput
 ): Promise<void> {
-  const supabase = await createClient();
+  const supabase = await createReadOnlyClient();
   const { error } = await supabase
     .from("humor_flavors")
     .update({ slug: flavor.slug, description: flavor.description || null })
@@ -47,7 +47,7 @@ export async function updateHumorFlavor(
 }
 
 export async function deleteHumorFlavor(id: number): Promise<void> {
-  const supabase = await createClient();
+  const supabase = await createReadOnlyClient();
   const { error: stepDeleteError } = await supabase
     .from("humor_flavor_steps")
     .delete()
@@ -77,7 +77,7 @@ type CreateHumorFlavorStepInput = {
 export async function createHumorFlavorStep(
   step: CreateHumorFlavorStepInput
 ): Promise<void> {
-  const supabase = await createClient();
+  const supabase = await createReadOnlyClient();
   const { data: existing, error: existingError } = await supabase
     .from("humor_flavor_steps")
     .select("order_by")
@@ -118,7 +118,7 @@ type UpdateHumorFlavorStepInput = {
 export async function updateHumorFlavorStep(
   step: UpdateHumorFlavorStepInput
 ): Promise<void> {
-  const supabase = await createClient();
+  const supabase = await createReadOnlyClient();
   const { error } = await supabase
     .from("humor_flavor_steps")
     .update({
@@ -136,7 +136,7 @@ export async function updateHumorFlavorStep(
 }
 
 export async function deleteHumorFlavorStep(id: number): Promise<void> {
-  const supabase = await createClient();
+  const supabase = await createReadOnlyClient();
   const { error } = await supabase.from("humor_flavor_steps").delete().eq("id", id);
   if (error) throw new Error(error.message);
 }
@@ -146,7 +146,7 @@ export async function moveHumorFlavorStep(
   flavorId: number,
   direction: "up" | "down"
 ): Promise<void> {
-  const supabase = await createClient();
+  const supabase = await createReadOnlyClient();
   const { data: current, error: currentError } = await supabase
     .from("humor_flavor_steps")
     .select("id, order_by")
