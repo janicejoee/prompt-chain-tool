@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { HumorFlavor, HumorFlavorStep } from "@/lib/types/humor";
+import type { HumorFlavor } from "@/lib/types/humor";
 
 type CreateHumorFlavorInput = {
   slug: string;
@@ -44,6 +44,80 @@ export async function updateHumorFlavor(
     .update({ slug: flavor.slug, description: flavor.description || null })
     .eq("id", flavor.id);
   if (error) throw new Error(error.message);
+}
+
+type SourceFlavorRow = {
+  id: number;
+  description: string | null;
+  is_pinned: boolean | null;
+};
+
+export async function duplicateHumorFlavorWithSteps(input: {
+  sourceFlavorId: number;
+  newSlug: string;
+  createdByUserId: string;
+}): Promise<HumorFlavor> {
+  const supabase = await createClient();
+  const newSlug = input.newSlug.trim();
+  if (!newSlug) throw new Error("New slug is required.");
+
+  const { data: source, error: sourceError } = await supabase
+    .from("humor_flavors")
+    .select("id, description, is_pinned")
+    .eq("id", input.sourceFlavorId)
+    .single<SourceFlavorRow>();
+
+  if (sourceError || !source) {
+    throw new Error(sourceError?.message ?? "Source flavor not found.");
+  }
+
+  const { data: stepRows, error: stepsError } = await supabase
+    .from("humor_flavor_steps")
+    .select(
+      "order_by, description, llm_system_prompt, llm_user_prompt, llm_temperature, llm_model_id, llm_input_type_id, llm_output_type_id, humor_flavor_step_type_id"
+    )
+    .eq("humor_flavor_id", input.sourceFlavorId)
+    .order("order_by", { ascending: true });
+
+  if (stepsError) throw new Error(stepsError.message);
+
+  const { data: created, error: insertFlavorError } = await supabase
+    .from("humor_flavors")
+    .insert({
+      slug: newSlug,
+      description: source.description,
+      is_pinned: Boolean(source.is_pinned),
+    })
+    .select("id, slug, description, created_datetime_utc")
+    .single<HumorFlavor>();
+
+  if (insertFlavorError || !created) {
+    throw new Error(insertFlavorError?.message ?? "Failed to create duplicate flavor.");
+  }
+
+  try {
+    for (const row of stepRows ?? []) {
+      const { error: stepInsertError } = await supabase.from("humor_flavor_steps").insert({
+        humor_flavor_id: created.id,
+        created_by_user_id: input.createdByUserId,
+        order_by: row.order_by,
+        description: row.description,
+        llm_system_prompt: row.llm_system_prompt,
+        llm_user_prompt: row.llm_user_prompt,
+        llm_temperature: row.llm_temperature ?? 0.7,
+        llm_model_id: row.llm_model_id ?? 1,
+        llm_input_type_id: row.llm_input_type_id ?? 1,
+        llm_output_type_id: row.llm_output_type_id ?? 1,
+        humor_flavor_step_type_id: row.humor_flavor_step_type_id ?? 1,
+      });
+      if (stepInsertError) throw new Error(stepInsertError.message);
+    }
+  } catch (err) {
+    await supabase.from("humor_flavors").delete().eq("id", created.id);
+    throw err;
+  }
+
+  return created;
 }
 
 export async function deleteHumorFlavor(id: number): Promise<void> {

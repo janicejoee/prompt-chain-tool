@@ -2,11 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { createReadOnlyClient } from "@/lib/supabase/server";
 import {
   createHumorFlavor,
   createHumorFlavorStep,
   deleteHumorFlavor,
   deleteHumorFlavorStep,
+  duplicateHumorFlavorWithSteps,
   moveHumorFlavorStep,
   updateHumorFlavor,
   updateHumorFlavorStep,
@@ -19,6 +21,12 @@ function asNumber(value: FormDataEntryValue | null, fallback = 0) {
 
 function withError(path: string, message: string) {
   return `${path}?error=${encodeURIComponent(message)}`;
+}
+
+function safeFlavorErrorPath(raw: string): string {
+  const t = raw.trim();
+  if (t.startsWith("/admin/flavors")) return t;
+  return "/admin/flavors";
 }
 
 function getSubmittedUserId(formData: FormData): string | null {
@@ -77,6 +85,41 @@ export async function deleteFlavor(formData: FormData) {
   }
 
   revalidatePath("/admin/flavors");
+}
+
+export async function duplicateFlavor(formData: FormData) {
+  const sourceId = asNumber(formData.get("source_id"));
+  const newSlug = String(formData.get("new_slug") ?? "").trim();
+  const errorPath = safeFlavorErrorPath(String(formData.get("error_path") ?? "/admin/flavors"));
+
+  if (!sourceId || !newSlug) {
+    redirect(withError(errorPath, "Source flavor and a new unique slug are required."));
+  }
+
+  const supabase = await createReadOnlyClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect(withError("/auth/login", "Please log in again."));
+  }
+
+  let newFlavorId: number;
+  try {
+    const created = await duplicateHumorFlavorWithSteps({
+      sourceFlavorId: sourceId,
+      newSlug,
+      createdByUserId: user.id,
+    });
+    newFlavorId = created.id;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Duplicate flavor failed.";
+    redirect(withError(errorPath, message));
+  }
+
+  revalidatePath("/admin/flavors");
+  revalidatePath(`/admin/flavors/${newFlavorId}`);
+  redirect(`/admin/flavors/${newFlavorId}`);
 }
 
 export async function createStep(formData: FormData) {

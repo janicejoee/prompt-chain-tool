@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createStep, deleteStep, moveStep, updateStep } from "../actions";
+import { createStep, deleteStep, duplicateFlavor, moveStep, updateStep } from "../actions";
 import type { HumorFlavor, HumorFlavorStep } from "@/lib/types/humor";
 
 export const dynamic = "force-dynamic";
@@ -65,6 +65,32 @@ export default async function FlavorDetailPage({
           </Link>
         </div>
       </div>
+
+      <form
+        action={duplicateFlavor}
+        className="flex flex-col gap-2 rounded-lg border border-zinc-200 bg-white p-4 md:flex-row md:flex-wrap md:items-end"
+      >
+        <input type="hidden" name="source_id" value={id} />
+        <input type="hidden" name="error_path" value={`/admin/flavors/${id}`} />
+        <div className="min-w-0 flex-1 md:max-w-md">
+          <label htmlFor="duplicate-new-slug" className="mb-1 block text-xs font-medium text-zinc-600">
+            Duplicate this flavor and all steps (new unique slug)
+          </label>
+          <input
+            id="duplicate-new-slug"
+            name="new_slug"
+            required
+            placeholder={`${flavor.slug}-copy`}
+            className="w-full rounded border border-zinc-300 bg-white px-3 py-2 text-sm"
+          />
+        </div>
+        <button
+          type="submit"
+          className="rounded border border-zinc-400 bg-zinc-50 px-3 py-2 text-sm font-medium hover:bg-zinc-100"
+        >
+          Duplicate
+        </button>
+      </form>
 
       <form action={createStep} className="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
         <input type="hidden" name="humor_flavor_id" value={id} />

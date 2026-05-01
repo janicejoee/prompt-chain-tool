@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { createFlavor, deleteFlavor, updateFlavor } from "./actions";
+import { createFlavor, deleteFlavor, duplicateFlavor, updateFlavor } from "./actions";
 import type { HumorFlavor } from "@/lib/types/humor";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +32,7 @@ export default async function FlavorsPage({
         <div>
           <h2 className="text-xl font-semibold">Humor Flavors</h2>
           <p className="text-sm text-zinc-600">
-            Create, edit, and delete humor flavors.
+            Create, duplicate, edit, and delete humor flavors.
           </p>
         </div>
         <form className="flex flex-col gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 md:flex-row md:items-center">
@@ -128,6 +128,30 @@ export default async function FlavorsPage({
                 className="rounded border border-zinc-300 bg-white px-3 py-2 md:col-span-2"
               />
               <button className="rounded border border-zinc-300 px-3 py-2 hover:bg-zinc-100">Save</button>
+            </form>
+            <form
+              action={duplicateFlavor}
+              className="mt-3 flex flex-col gap-2 rounded-md border border-dashed border-zinc-300 bg-zinc-50/80 p-3 md:flex-row md:flex-wrap md:items-end"
+            >
+              <input type="hidden" name="source_id" value={flavor.id} />
+              <div className="min-w-0 flex-1 md:max-w-xs">
+                <label htmlFor={`dup-slug-${flavor.id}`} className="mb-1 block text-xs font-medium text-zinc-600">
+                  Duplicate (new unique slug)
+                </label>
+                <input
+                  id={`dup-slug-${flavor.id}`}
+                  name="new_slug"
+                  required
+                  placeholder={`${flavor.slug}-copy`}
+                  className="w-full rounded border border-zinc-300 bg-white px-3 py-2 text-sm"
+                />
+              </div>
+              <button
+                type="submit"
+                className="rounded border border-zinc-400 bg-white px-3 py-2 text-sm font-medium hover:bg-zinc-100"
+              >
+                Duplicate flavor and steps
+              </button>
             </form>
             <form action={deleteFlavor} className="mt-2">
               <input type="hidden" name="id" value={flavor.id} />
