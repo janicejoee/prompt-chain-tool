@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LogoutButton } from "@/components/logout-button";
 import { createReadOnlyClient } from "@/lib/supabase/server";
 import { isCurrentUserAdmin } from "@/lib/auth";
 
@@ -56,9 +57,7 @@ export default async function Home() {
         )}
         {user ? (
           <>
-            <Link href="/auth/logout" className="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-100">
-              Logout
-            </Link>
+            <LogoutButton className="cursor-pointer rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-100" />
           </>
         ) : null}
       </div>

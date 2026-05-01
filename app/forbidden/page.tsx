@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { LogoutButton } from "@/components/logout-button";
 
 export const dynamic = "force-dynamic";
 
@@ -15,12 +15,12 @@ export default function ForbiddenPage() {
           <code>profiles.is_matrix_admin</code> to <code>true</code>.
         </p>
         <div className="mt-4 flex gap-2">
-          <Link
-            href="/auth/logout?redirect=/"
-            className="rounded-md border border-amber-300 bg-white px-3 py-1.5 text-sm"
+          <LogoutButton
+            redirect="/"
+            className="cursor-pointer rounded-md border border-amber-300 bg-white px-3 py-1.5 text-sm"
           >
             Sign out
-          </Link>
+          </LogoutButton>
         </div>
       </div>
     </div>
